@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pascal666.top - 正在开发中</title>
+    <style>
+        /* 基础样式 - 90年代原始互联网风格 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #000000;
+            color: #00FF00;
+            font-family: "Courier New", Courier, monospace;
+            line-height: 1.4;
+            padding: 20px;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        /* 经典90年代边框 */
+        .container {
+            border: 8px double #00FF00;
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 800px;
+            min-height: 90vh;
+            position: relative;
+            background-color: #000000;
+        }
+        
+        /* 网站标题 - 原始互联网风格 */
+        .site-title {
+            text-align: center;
+            margin: 50px 0 60px;
+        }
+        
+        .site-title h1 {
+            font-size: 3.5rem;
+            color: #00FF00;
+            text-shadow: 0 0 10px #00FF00;
+            letter-spacing: 3px;
+            border-bottom: 3px dashed #00FF00;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        
+        /* 开发中告示 */
+        .under-construction {
+            text-align: center;
+            margin: 40px 0;
+            padding: 20px;
+            border: 3px dotted #00FF00;
+            background-color: #111111;
+        }
+        
+        .under-construction h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #FFFF00;
+        }
+        
+        .construction-gif {
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            background-color: #222;
+            border: 2px solid #00FF00;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+        }
+        
+        .under-construction p {
+            font-size: 1.2rem;
+            margin: 15px 0;
+        }
+        
+        /* 复古计数器 */
+        .counter {
+            text-align: center;
+            margin: 30px 0;
+            font-size: 1.5rem;
+            color: #00FFFF;
+        }
+        
+        /* 原始互联网风格的图案 */
+        .pattern {
+            position: absolute;
+            opacity: 0.3;
+            z-index: -1;
+        }
+        
+        /* 各种原始互联网图案 */
+        .pixel-grid {
+            width: 200px;
+            height: 200px;
+            top: 10%;
+            left: 5%;
+            background-image: 
+                linear-gradient(45deg, #00FF00 25%, transparent 25%),
+                linear-gradient(-45deg, #00FF00 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #00FF00 75%),
+                linear-gradient(-45deg, transparent 75%, #00FF00 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        
+        .diamond-pattern {
+            width: 150px;
+            height: 150px;
+            bottom: 15%;
+            right: 8%;
+            background: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, #00FF00 10px, #00FF00 20px);
+        }
+        
+        .dot-grid {
+            width: 180px;
+            height: 180px;
+            top: 60%;
+            left: 10%;
+            background: 
+                radial-gradient(circle, #00FF00 2px, transparent 3px);
+            background-size: 20px 20px;
+        }
+        
+        .binary-code {
+            width: 100%;
+            height: 30px;
+            bottom: 5%;
+            left: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            font-size: 1.2rem;
+            color: #00FF00;
+        }
+        
+        .line-pattern {
+            width: 300px;
+            height: 3px;
+            top: 20%;
+            right: 5%;
+            background: repeating-linear-gradient(to right, transparent, transparent 10px, #00FF00 10px, #00FF00 20px);
+        }
+        
+        .line-pattern-vertical {
+            width: 3px;
+            height: 300px;
+            top: 40%;
+            left: 8%;
+            background: repeating-linear-gradient(to bottom, transparent, transparent 10px, #00FF00 10px, #00FF00 20px);
+        }
+        
+        /* 复古按钮 */
+        .retro-button {
+            display: inline-block;
+            background-color: #000;
+            color: #00FF00;
+            border: 2px solid #00FF00;
+            padding: 8px 20px;
+            margin: 10px 5px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .retro-button:hover {
+            background-color: #00FF00;
+            color: #000;
+        }
+        
+        /* 闪烁光标效果 */
+        .blink {
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            from, to { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        /* 复古分割线 */
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #00FF00, transparent);
+            margin: 30px 0;
+        }
+        
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9rem;
+            color: #008800;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .site-title h1 {
+                font-size: 2.5rem;
+            }
+            
+            .under-construction h2 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 15px;
+                border-width: 5px;
+            }
+            
+            .pattern {
+                opacity: 0.2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 背景图案 -->
+        <div class="pattern pixel-grid"></div>
+        <div class="pattern diamond-pattern"></div>
+        <div class="pattern dot-grid"></div>
+        <div class="pattern line-pattern"></div>
+        <div class="pattern line-pattern-vertical"></div>
+        
+        <!-- 网站标题 -->
+        <div class="site-title">
+            <h1>Pascal666.top</h1>
+        </div>
+        
+        <!-- 复古计数器 -->
+        <div class="counter">
+            访问者计数: <span id="visitorCount">000042</span>
+        </div>
+        
+        <hr>
+        
+        <!-- 开发中告示 -->
+        <div class="under-construction">
+            <h2>🚧 正在开发中 🚧</h2>
+            
+            <div class="construction-gif">
+                <div>⚠️</div>
+            </div>
+            
+            <p>本网站正在全力开发中，敬请期待！</p>
+            <p>我们的开发者正在努力编写代码...</p>
+            <p>预计完成时间: <span id="countdown">--:--:--</span></p>
+            
+            <div style="margin: 20px 0;">
+                <span class="blink">█</span> 系统状态: 初始化中...
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <a href="#" class="retro-button" onclick="refreshPage()">刷新页面</a>
+                <a href="mailto:admin@pascal666.top" class="retro-button">联系管理员</a>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <!-- 二进制代码流动效果 -->
+        <div class="pattern binary-code" id="binaryCode"></div>
+        
+        <!-- 页脚 -->
+        <div class="footer">
+            <p>© 2026 Pascal666.top - 版权所有</p>
+            <p>最后更新: 2026-04-05</p>
+        </div>
+    </div>
+
+    <script>
+        // 二进制代码流动效果
+        const binaryCode = document.getElementById('binaryCode');
+        let binaryText = '';
+        
+        // 生成随机的二进制字符串
+        for (let i = 0; i < 200; i++) {
+            binaryText += Math.random() > 0.5 ? '1' : '0';
+        }
+        
+        binaryCode.textContent = binaryText;
+        
+        // 让二进制代码流动
+        function scrollBinaryCode() {
+            binaryText = binaryText.substring(1) + binaryText.charAt(0);
+            binaryCode.textContent = binaryText;
+        }
+        
+        setInterval(scrollBinaryCode, 100);
+        
+        // 刷新页面
+        function refreshPage() {
+            location.reload();
+            return false;
+        }
+        
+        // 模拟倒计时
+        function updateCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            const now = new Date();
+            const targetDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000); // 15天后
+            
+            const diff = targetDate - now;
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            countdownElement.textContent = `${days}天 ${hours}小时 ${minutes}分钟`;
+        }
+        
+        // 初始化倒计时
+        updateCountdown();
+        setInterval(updateCountdown, 60000); // 每分钟更新一次
+    </script>
+</body>
+</html>
