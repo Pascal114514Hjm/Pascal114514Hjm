@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pascal666.top - 80年代互联网终端</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.2;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #terminal {
+            width: 800px;
+            max-width: 95vw;
+            height: 600px;
+            max-height: 90vh;
+            background-color: #000;
+            border: 2px solid #0f0;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #header {
+            padding: 10px;
+            border-bottom: 1px solid #0f0;
+            text-align: center;
+            background-color: #001100;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        #content {
+            padding: 15px;
+            height: calc(100% - 110px);
+            overflow-y: auto;
+            font-size: 16px;
+        }
+        
+        #input-line {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #0f0;
+            background-color: #001100;
+        }
+        
+        #prompt {
+            color: #0f0;
+            margin-right: 10px;
+            white-space: nowrap;
+        }
+        
+        #command-input {
+            background: transparent;
+            border: none;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            outline: none;
+            flex-grow: 1;
+            caret-color: #0f0;
+        }
+        
+        .loading-bar {
+            width: 100%;
+            height: 20px;
+            border: 1px solid #0f0;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            background-color: #0f0;
+            width: 0%;
+            transition: width 0.5s linear;
+        }
+        
+        .blink {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .game-container {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+        }
+
+        .game-header {
+            text-align: center;
+            padding: 5px;
+            border-bottom: 1px solid #0f0;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .game-instructions {
+            font-size: 14px;
+            color: #0a0;
+        }
+        
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #000;
+            border: 1px solid #0f0;
+            flex-shrink: 0;
+        }
+        
+        .game-footer {
+            text-align: center;
+            padding: 10px;
+            flex-shrink: 0;
+        }
+
+        /* 新的复古风格按钮 */
+        .retro-link {
+            color: #0f0;
+            background: transparent;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 5px 10px;
+        }
+
+        .retro-link:hover {
+            background-color: #0f0;
+            color: #000;
+            text-decoration: none;
+        }
+
+        .esc-hint {
+            font-size: 12px;
+            color: #050;
+            margin-top: 5px;
+        }
+        
+        /* 滚动条样式 */
+        #content::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        #content::-webkit-scrollbar-track {
+            background: #001100;
+        }
+        
+        #content::-webkit-scrollbar-thumb {
+            background: #0f0;
+        }
+        
+        @media (max-width: 768px) {
+            #terminal {
+                height: 500px;
+            }
+            
+            #content {
+                font-size: 14px;
+            }
+            
+            canvas {
+                max-width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal">
+        <div id="header">PASCAL666.TOP - 80年代互联网终端 v1.0</div>
+        <div id="content">
+            <div id="dialup-screen">
+                <p>正在初始化调制解调器...</p>
+                <p>ATZ</p>
+                <p>OK</p>
+                <p>ATDT555-1234</p>
+                <p>CONNECT 2400</p>
+                <p>正在建立连接...</p>
+                <div class="loading-bar">
+                    <div class="loading-progress" id="progress-bar"></div>
+                </div>
+                <p>连接进度: <span id="progress-text">0%</span></p>
+                <p>速度: 2400 baud</p>
+                <p>正在协商协议...</p>
+                <p class="blink">等待响应<span id="dots">...</span></p>
+            </div>
+            
+            <div id="main-screen" style="display:none;">
+                <p>欢迎进入 Pascal666.top!</p>
+                <p>系统时间: <span id="system-time"></span></p>
+                <p>内存: 640K可用</p>
+                <p>存储: 20MB硬盘</p>
+                <p>----------------------------------------</p>
+                <p>可用命令:</p>
+                <p>1. snake - 启动贪吃蛇游戏</p>
+                <p>2. bird - 启动飞翔的小鸟游戏</p>
+                <p>3. Russia - 启动俄罗斯方块游戏</p>
+                <p>4. help - 显示帮助信息</p>
+                <p>5. clear - 清屏</p>
+                <p>----------------------------------------</p>
+                <p>输入命令并按回车执行。</p>
+                <div id="output"></div>
+            </div>
+            
+            <!-- 游戏容器 -->
+            <div id="snake-game" class="game-container">
+                <div class="game-header">
+                    <h2>贪吃蛇 v1.0</h2>
+                    <p class="game-instructions">方向键控制 | P暂停 | R重开</p>
+                </div>
+                <canvas id="snake-canvas" width="600" height="400"></canvas>
+                <div class="game-footer">
+                    <button class="retro-link" onclick="backToTerminal()">[ 返回终端 ]</button>
+                    <p class="esc-hint">或按 ESC 键退出</p>
+                </div>
+            </div>
+            
+            <div id="bird-game" class="game-container">
+                <div class="game-header">
+                    <h2>飞翔的小鸟 v1.0</h2>
+                    <p class="game-instructions">空格键跳跃 | R重开</p>
+                </div>
+                <canvas id="bird-canvas" width="600" height="400"></canvas>
+                <div class="game-footer">
+                    <button class="retro-link" onclick="backToTerminal()">[ 返回终端 ]</button>
+                    <p class="esc-hint">或按 ESC 键退出</p>
+                </div>
+            </div>
+            
+            <div id="russia-game" class="game-container">
+                <div class="game-header">
+                    <h2>俄罗斯方块 v1.0</h2>
+                    <p class="game-instructions">方向键移动/旋转 | 空格下落 | R重开</p>
+                </div>
+                <canvas id="russia-canvas" width="300" height="600"></canvas>
+                <div class="game-footer">
+                    <button class="retro-link" onclick="backToTerminal()">[ 返回终端 ]</button>
+                    <p class="esc-hint">或按 ESC 键退出</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="input-line">
+            <span id="prompt">C:\PASCAL666&gt;</span>
+            <input type="text" id="command-input" autocomplete="off" autofocus>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 'dialup';
+        let progress = 0;
+        let dotsCount = 0;
+        let activeGame = null; // 跟踪当前运行的游戏，用于ESC退出
+        const gameIntervals = {};
+        
+        const dialupScreen = document.getElementById('dialup-screen');
+        const mainScreen = document.getElementById('main-screen');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const dotsElement = document.getElementById('dots');
+        const commandInput = document.getElementById('command-input');
+        const outputDiv = document.getElementById('output');
+        const systemTime = document.getElementById('system-time');
+        
+        const snakeCanvas = document.getElementById('snake-canvas');
+        const birdCanvas = document.getElementById('bird-canvas');
+        const russiaCanvas = document.getElementById('russia-canvas');
+
+        document.addEventListener('DOMContentLoaded', function() {
+            commandInput.focus();
+            startDialup();
+            updateSystemTime();
+            setInterval(updateSystemTime, 1000);
+            
+            commandInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const command = commandInput.value.trim().toLowerCase();
+                    commandInput.value = '';
+                    if (currentScreen === 'main') {
+                        processCommand(command);
+                    }
+                }
+            });
+
+            // 全局ESC键监听：用于退出游戏
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && currentScreen !== 'main' && currentScreen !== 'dialup') {
+                    backToTerminal();
+                }
+            });
+        });
+        
+        function updateSystemTime() {
+            const now = new Date();
+            systemTime.textContent = now.toLocaleDateString('zh-CN') + ' ' + now.toLocaleTimeString('zh-CN');
+        }
+        
+        function startDialup() {
+            const interval = setInterval(() => {
+                progress += 100 / 60;
+                
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    setTimeout(() => {
+                        dialupScreen.style.display = 'none';
+                        mainScreen.style.display = 'block';
+                        currentScreen = 'main';
+                        addOutput("连接成功! 欢迎来到Pascal666.top");
+                        commandInput.focus();
+                    }, 500);
+                }
+                
+                progressBar.style.width = `${progress}%`;
+                progressText.textContent = `${Math.round(progress)}%`;
+                
+                dotsCount = (dotsCount + 1) % 4;
+                dotsElement.textContent = '.'.repeat(dotsCount);
+            }, 1000);
+        }
+        
+        function processCommand(cmd) {
+            addOutput(`C:\\PASCAL666&gt; ${cmd}`);
+            
+            switch(cmd) {
+                case 'snake':
+                    launchGame('snake');
+                    break;
+                case 'bird':
+                    launchGame('bird');
+                    break;
+                case 'russia':
+                    launchGame('russia');
+                    break;
+                case 'help':
+                    showHelp();
+                    break;
+                case 'clear':
+                    outputDiv.innerHTML = '';
+                    break;
+                case '':
+                    break;
+                default:
+                    addOutput(`'${cmd}' 不是内部或外部命令。`);
+                    addOutput('输入 "help" 获取可用命令列表。');
+            }
+        }
+        
+        function showHelp() {
+            addOutput("可用命令:");
+            addOutput("snake   - 启动贪吃蛇游戏");
+            addOutput("bird    - 启动飞翔的小鸟游戏");
+            addOutput("Russia  - 启动俄罗斯方块游戏");
+            addOutput("help    - 显示此帮助信息");
+            addOutput("clear   - 清除屏幕内容");
+        }
+        
+        function addOutput(text) {
+            const p = document.createElement('p');
+            p.innerHTML = text;
+            outputDiv.appendChild(p);
+            
+            const content = document.getElementById('content');
+            content.scrollTop = content.scrollHeight;
+        }
+        
+        function launchGame(game) {
+            // 清理之前的游戏
+            stopAllGames();
+            
+            mainScreen.style.display = 'none';
+            document.querySelectorAll('.game-container').forEach(container => {
+                container.style.display = 'none';
+            });
+            
+            const gameElement = document.getElementById(`${game}-game`);
+            gameElement.style.display = 'flex'; // 使用flex布局
+            currentScreen = game;
+            activeGame = game;
+            
+            switch(game) {
+                case 'snake':
+                    initSnakeGame();
+                    break;
+                case 'bird':
+                    initBirdGame();
+                    break;
+                case 'russia':
+                    initRussiaGame();
+                    break;
+            }
+        }
+        
+        function backToTerminal() {
+            stopAllGames();
+            
+            document.querySelectorAll('.game-container').forEach(container => {
+                container.style.display = 'none';
+            });
+            
+            mainScreen.style.display = 'block';
+            currentScreen = 'main';
+            activeGame = null;
+            commandInput.focus();
+            addOutput("已返回终端。");
+        }
+
+        // 停止所有游戏循环的关键函数
+        function stopAllGames() {
+            Object.keys(gameIntervals).forEach(key => {
+                if (gameIntervals[key]) {
+                    clearInterval(gameIntervals[key]);
+                    cancelAnimationFrame(gameIntervals[key]); // 兼容requestAnimationFrame
+                    gameIntervals[key] = null;
+                }
+            });
+        }
+        
+        // ===== 贪吃蛇游戏 =====
+        function initSnakeGame() {
+            const ctx = snakeCanvas.getContext('2d');
+            const gridSize = 20;
+            const gridWidth = snakeCanvas.width / gridSize;
+            const gridHeight = snakeCanvas.height / gridSize;
+            
+            let snake = [{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}];
+            let food = {x: 15, y: 15};
+            let dx = 1, dy = 0, score = 0;
+            let gameOver = false, paused = false;
+
+            function drawGame() {
+                ctx.fillStyle = '#000'; ctx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+                ctx.strokeStyle = '#003300';
+                for (let x = 0; x < snakeCanvas.width; x += gridSize) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, snakeCanvas.height); ctx.stroke(); }
+                for (let y = 0; y < snakeCanvas.height; y += gridSize) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(snakeCanvas.width, y); ctx.stroke(); }
+                ctx.fillStyle = '#0f0';
+                snake.forEach(seg => { ctx.fillRect(seg.x * gridSize, seg.y * gridSize, gridSize, gridSize); });
+                ctx.fillStyle = '#f00';
+                ctx.beginPath(); ctx.arc(food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2, gridSize/2, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#0f0'; ctx.font = '16px Courier New'; ctx.fillText(`得分: ${score}`, 10, 20);
+                
+                if (paused) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+                    ctx.fillStyle = '#0f0'; ctx.font = '24px Courier New'; ctx.textAlign = 'center';
+                    ctx.fillText('游戏暂停', snakeCanvas.width/2, snakeCanvas.height/2);
+                    ctx.font = '16px Courier New'; ctx.fillText('按P继续', snakeCanvas.width/2, snakeCanvas.height/2 + 30);
+                    ctx.textAlign = 'left';
+                }
+                if (gameOver) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+                    ctx.fillStyle = '#0f0'; ctx.font = '24px Courier New'; ctx.textAlign = 'center';
+                    ctx.fillText('游戏结束', snakeCanvas.width/2, snakeCanvas.height/2);
+                    ctx.font = '16px Courier New'; ctx.fillText(`最终得分: ${score}`, snakeCanvas.width/2, snakeCanvas.height/2 + 30);
+                    ctx.fillText('按R重新开始', snakeCanvas.width/2, snakeCanvas.height/2 + 60);
+                    ctx.textAlign = 'left';
+                }
+            }
+            
+            function moveSnake() {
+                if (gameOver || paused) return;
+                const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+                if (head.x < 0 || head.x >= gridWidth || head.y < 0 || head.y >= gridHeight || snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+                    gameOver = true; return;
+                }
+                snake.unshift(head);
+                if (head.x === food.x && head.y === food.y) {
+                    score += 10;
+                    food = {x: Math.floor(Math.random()*gridWidth), y: Math.floor(Math.random()*gridHeight)};
+                    while (snake.some(seg => seg.x === food.x && seg.y === food.y)) {
+                        food = {x: Math.floor(Math.random()*gridWidth), y: Math.floor(Math.random()*gridHeight)};
+                    }
+                } else { snake.pop(); }
+            }
+
+            function keyDown(e) {
+                if (gameOver && (e.key === 'r' || e.key === 'R')) {
+                    snake = [{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}]; dx=1; dy=0; score=0; gameOver=false; food = {x: 15, y: 15}; return;
+                }
+                if (e.key === 'p' || e.key === 'P') { paused = !paused; return; }
+                if (paused || gameOver) return;
+                switch(e.key) {
+                    case 'ArrowUp': if(dy!==1){dx=0; dy=-1;} break;
+                    case 'ArrowDown': if(dy!==-1){dx=0; dy=1;} break;
+                    case 'ArrowLeft': if(dx!==1){dx=-1; dy=0;} break;
+                    case 'ArrowRight': if(dx!==-1){dx=1; dy=0;} break;
+                }
+            }
+            document.addEventListener('keydown', keyDown);
+            gameIntervals.snake = setInterval(() => { moveSnake(); drawGame(); }, 150);
+            drawGame();
+        }
+
+        // ===== 飞翔的小鸟游戏 =====
+        function initBirdGame() {
+            const ctx = birdCanvas.getContext('2d');
+            const gravity = 0.5, jump = -8;
+            let bird = {x: 100, y: birdCanvas.height/2, v: 0, r: 10};
+            let pipes = [], frame = 0, score = 0, gameOver = false;
+
+            function draw() {
+                ctx.fillStyle='#000'; ctx.fillRect(0,0,birdCanvas.width,birdCanvas.height);
+                ctx.fillStyle='#0a0'; ctx.fillRect(0,birdCanvas.height-20,birdCanvas.width,20);
+                ctx.fillStyle='#ff0'; ctx.beginPath(); ctx.arc(bird.x,bird.y,bird.r,0,Math.PI*2); ctx.fill();
+                ctx.fillStyle='#0f0'; pipes.forEach(p=>{ctx.fillRect(p.x,0,40,p.top); ctx.fillRect(p.x,p.top+150,40,birdCanvas.height-p.top-150-20);});
+                ctx.fillStyle='#fff'; ctx.font='20px Courier New'; ctx.fillText(`得分: ${score}`,10,30);
+                if(gameOver){
+                    ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(0,0,birdCanvas.width,birdCanvas.height);
+                    ctx.fillStyle='#0f0'; ctx.font='24px Courier New'; ctx.textAlign='center';
+                    ctx.fillText('游戏结束', birdCanvas.width/2, birdCanvas.height/2);
+                    ctx.font='16px Courier New'; ctx.fillText(`得分: ${score}`, birdCanvas.width/2, birdCanvas.height/2+30);
+                    ctx.fillText('按空格键重开', birdCanvas.width/2, birdCanvas.height/2+60);
+                    ctx.textAlign='left';
+                }
+            }
+
+            function update() {
+                if(gameOver) return;
+                bird.v+=gravity; bird.y+=bird.v;
+                if(bird.y+bird.r>birdCanvas.height-20||bird.y-bird.r<0){gameOver=true;}
+                if(frame%100===0){pipes.push({x:birdCanvas.width, top: Math.random()*(birdCanvas.height-200)+50});}
+                pipes.forEach((p,i)=>{
+                    p.x-=3;
+                    if(p.x+40<bird.x-bird.r && !p.scored){score++; p.scored=true;}
+                    if(bird.x+bird.r>p.x && bird.x-bird.r<p.x+40 && (bird.y-bird.r<p.top || bird.y+bird.r>p.top+150)){gameOver=true;}
+                    if(p.x<-40) pipes.splice(i,1);
+                });
+                frame++;
+            }
+
+            function keyDown(e){
+                if(e.code==='Space'){
+                    if(gameOver){ bird={x:100,y:birdCanvas.height/2,v:0,r:10}; pipes=[]; frame=0; score=0; gameOver=false; }
+                    else bird.v=jump;
+                    e.preventDefault();
+                }
+            }
+            document.addEventListener('keydown', keyDown);
+            gameIntervals.bird = setInterval(()=>{update();draw();},20);
+            draw();
+        }
+
+        // ===== 俄罗斯方块游戏 =====
+        function initRussiaGame() {
+            const ctx = russiaCanvas.getContext('2d');
+            const g=30, cols=10, rows=20;
+            const shapes=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]];
+            const colors=['#0ff','#ff0','#f0f','#00f','#f80','#0f0','#f00'];
+            let board=Array(rows).fill().map(()=>Array(cols).fill(0));
+            let piece=null, color=null, px=0, py=0, score=0, gameOver=false, drop=0;
+
+            function newPiece(){
+                const i=Math.floor(Math.random()*shapes.length);
+                piece=shapes[i]; color=colors[i]; px=cols/2-Math.floor(piece[0].length/2); py=0;
+                if(checkCollision()) gameOver=true;
+            }
+
+            function checkCollision(){for(let y=0;y<piece.length;y++)for(let x=0;x<piece[y].length;x++)if(piece[y][x]&&(py+y>=rows||px+x<0||px+x>=cols||board[py+y][px+x]))return true;return false;}
+            
+            function merge(){piece.forEach((r,y)=>r.forEach((v,x)=>{if(v)board[py+y][px+x]=color;}));}
+            
+            function rotate(){
+                const rot=piece[0].map((_,i)=>piece.map(row=>row[i]).reverse());
+                const old=piece; piece=rot; if(checkCollision()) piece=old;
+            }
+
+            function clearLines(){
+                let c=0;
+                for(let y=rows-1;y>=0;y--){
+                    if(board[y].every(v=>v!==0)){
+                        board.splice(y,1); board.unshift(Array(cols).fill(0)); c++; y++;
+                    }
+                }
+                score+= [40,100,300,1200][c-1]||0;
+            }
+
+            function draw(){
+                ctx.fillStyle='#000'; ctx.fillRect(0,0,russiaCanvas.width,russiaCanvas.height);
+                ctx.strokeStyle='#003300';
+                for(let x=0;x<=cols;x++){ctx.beginPath();ctx.moveTo(x*g,0);ctx.lineTo(x*g,russiaCanvas.height);ctx.stroke();}
+                for(let y=0;y<=rows;y++){ctx.beginPath();ctx.moveTo(0,y*g);ctx.lineTo(russiaCanvas.width,y*g);ctx.stroke();}
+                board.forEach((r,y)=>r.forEach((v,x)=>{if(v){ctx.fillStyle=v;ctx.fillRect(x*g,y*g,g,g);}}));
+                if(piece){ctx.fillStyle=color;piece.forEach((r,y)=>r.forEach((v,x)=>{if(v)ctx.fillRect((px+x)*g,(py+y)*g,g,g);}));}
+                ctx.fillStyle='#0f0'; ctx.font='16px Courier New'; ctx.fillText(`得分: ${score}`,10,20);
+                if(gameOver){
+                    ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(0,0,russiaCanvas.width,russiaCanvas.height);
+                    ctx.fillStyle='#0f0'; ctx.font='24px Courier New'; ctx.textAlign='center';
+                    ctx.fillText('游戏结束', russiaCanvas.width/2, russiaCanvas.height/2);
+                    ctx.font='16px Courier New'; ctx.fillText(`得分: ${score}`, russiaCanvas.width/2, russiaCanvas.height/2+30);
+                    ctx.fillText('按R重开', russiaCanvas.width/2, russiaCanvas.height/2+60);
+                    ctx.textAlign='left';
+                }
+            }
+            
+            function loop(time=0){
+                if(gameOver){draw(); return;}
+                drop+=16;
+                if(drop>1000){py++; if(checkCollision()){py--; merge(); clearLines(); newPiece();} drop=0;}
+                draw();
+                gameIntervals.russia = requestAnimationFrame(loop);
+            }
+
+            function keyDown(e){
+                if(gameOver && (e.key==='r'||e.key==='R')){board=Array(rows).fill().map(()=>Array(cols).fill(0));score=0;gameOver=false;newPiece();loop();return;}
+                if(gameOver) return;
+                switch(e.key){
+                    case 'ArrowLeft': px--; if(checkCollision())px++; break;
+                    case 'ArrowRight': px++; if(checkCollision())px--; break;
+                    case 'ArrowDown': py++; if(checkCollision())py--; break;
+                    case 'ArrowUp': rotate(); break;
+                    case ' ': while(!checkCollision())py++; py--; break;
+                }
+                draw();
+            }
+            document.addEventListener('keydown', keyDown);
+            newPiece();
+            loop();
+        }
+    </script>
+</body>
+</html>
