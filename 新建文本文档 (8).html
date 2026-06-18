@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>险牌对决 · Pascal666.top</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --felt:#0f3d23;--gold:#e8c547;--goldGlow:rgba(232,197,71,.35);
+  --red:#e74c3c;--txt:#eaf0e6;--mute:#7a9080;
+}
+html,body{height:100%;overflow:hidden;background:#060e08;font-family:'Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif;color:var(--txt)}
+
+/* 头部 (1/26 高度) */
+#header{
+  height:calc(100vh / 26); min-height:36px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px;
+  background:linear-gradient(135deg,#0a1810,#0f2218);
+  border-bottom:1px solid rgba(232,197,71,.15);
+  flex-shrink:0;
+}
+#header .brand{
+  font-size:18px; font-weight:800; letter-spacing:1px;
+  color:var(--gold); text-shadow:0 0 8px rgba(232,197,71,.2);
+}
+#header .brand small{font-size:11px;color:var(--mute);font-weight:400;margin-left:6px}
+#header .dl-btn{
+  background:rgba(255,255,255,.08); border:1px solid rgba(232,197,71,.2);
+  color:var(--gold); padding:6px 14px; border-radius:6px;
+  font-size:12px; cursor:pointer; transition:.15s;
+  font-family:inherit; font-weight:600;
+}
+#header .dl-btn:hover{background:rgba(232,197,71,.15);border-color:var(--gold)}
+
+/* 游戏容器 (剩余 25/26 高度) */
+#game-wrap{
+  height:calc(100vh - (100vh / 26));
+  display:flex; flex-direction:column;
+}
+
+/* 设置界面 */
+#setup-screen{
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:18px; padding:20px;
+  background:radial-gradient(ellipse at 50% 52%,#14663a 0%,#0f4d2c 38%,#0a3518 70%,#081f10 100%);
+}
+#setup-screen h1{font-size:28px;color:var(--gold);margin-bottom:6px}
+#setup-screen .sub{color:var(--mute);font-size:13px;margin-bottom:10px}
+#setup-screen .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+#setup-screen label{font-size:13px;color:var(--txt)}
+#setup-screen select{
+  background:rgba(0,0,0,.4); border:1px solid rgba(232,197,71,.2);
+  color:var(--txt); padding:6px 12px; border-radius:6px; font-size:13px;
+}
+#setup-screen .player-config{
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+  background:rgba(0,0,0,.25); padding:8px 14px; border-radius:8px;
+}
+#setup-screen .player-config span{font-size:12px;color:var(--mute);min-width:50px}
+#setup-screen .start-btn{
+  background:linear-gradient(135deg,#43a047,#2e7d32);
+  color:#fff; border:none; padding:10px 30px; border-radius:8px;
+  font-size:16px; font-weight:700; cursor:pointer; transition:.15s;
+  box-shadow:0 2px 12px rgba(67,160,71,.3);
+}
+#setup-screen .start-btn:hover{transform:scale(1.03)}
+
+/* 游戏界面 */
+#game-screen{
+  flex:1; display:none; flex-direction:column; position:relative;
+}
+#topbar{
+  flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  padding:7px 16px;
+  background:linear-gradient(180deg,rgba(10,30,18,.92),rgba(10,30,18,.55));
+  border-bottom:1px solid rgba(232,197,71,.10);font-size:12px;z-index:30;
+}
+#topbar .big{font-size:17px;font-weight:800;color:var(--gold)}
+#topbar .sub{color:var(--mute);text-transform:uppercase;font-size:10px;letter-spacing:.7px}
+#table{
+  flex:1;position:relative;min-height:0;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 52%,#14663a 0%,#0f4d2c 38%,#0a3518 70%,#081f10 100%);
+  border-top:4px solid #3d1e08;border-bottom:4px solid #3d1e08;
+}
+#table::before{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 60px 20px rgba(0,0,0,.45);z-index:0}
+.seat{
+  position:absolute;text-align:center;transform:translate(-50%,-50%);z-index:2;
+}
+.seat .ico{
+  width:46px;height:46px;border-radius:50%;
+  background:linear-gradient(135deg,#1e4030,#0f2818);
+  border:2px solid rgba(232,197,71,.22);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:18px;margin-bottom:2px;box-shadow:0 2px 8px rgba(0,0,0,.5);
+}
+.seat.you .ico{border-color:var(--gold);box-shadow:0 0 10px var(--goldGlow)}
+.seat.out .ico{opacity:.35;filter:grayscale(1)}
+.seat .sname{font-size:9.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--mute)}
+.seat.you .sname{color:var(--gold)}
+.seat .schips{font-size:13px;font-weight:700;color:#fff;margin-top:1px}
+.seat.out .schips{color:var(--red)}
+.hand{display:flex;gap:4px;justify-content:center;margin-top:4px;min-height:106px}
+.hand .card-outer{
+  cursor:default;
+  transition:filter .15s,transform .15s;
+}
+.hand .card-outer.sel{outline:2.5px solid var(--gold);outline-offset:3px;border-radius:9px;filter:drop-shadow(0 0 10px var(--goldGlow))}
+.hand .card-outer.canclick{cursor:pointer}
+.hand .card-outer.canclick:hover{filter:drop-shadow(0 -2px 10px rgba(232,197,71,.35))}
+.card-outer{
+  perspective:700px;width:72px;height:106px;display:inline-flex;flex-shrink:0;
+}
+.card-inner{
+  width:100%;height:100%;position:relative;
+  transform-style:preserve-3d;
+  -webkit-transform-style:preserve-3d;
+  transition:transform .5s cubic-bezier(.4,0,.2,1);
+}
+.card-inner.flipped{transform:rotateY(180deg)}
+.card-face{
+  position:absolute;inset:0;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:8px;overflow:hidden;
+}
+.card-face.back{
+  background:repeating-linear-gradient(45deg,#0d3a1e 0px,#0d3a1e 5px,#112d1a 5px,#112d1a 10px),
+    linear-gradient(135deg,#0f4d2c,#0a3518);
+  border:2px solid #1e6030;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 10px rgba(0,0,0,.55),inset 0 0 16px rgba(0,60,20,.25);
+}
+.card-face.back .bk{font-size:20px;color:rgba(255,255,255,.09);user-select:none}
+.card-face.front{
+  transform:rotateY(180deg);
+  background:#f8f4ef;border:2px solid #c8bfaa;
+  box-shadow:0 2px 10px rgba(0,0,0,.5);
+  padding:3px 5px;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;
+}
+.card-face.front .rt{font-size:17px;font-weight:900;line-height:1}
+.card-face.front .sm{font-size:9px}
+.card-face.front .mid{text-align:center;font-size:26px;line-height:1;margin-top:-2px;user-select:none}
+.card-face.front .rb{font-size:17px;font-weight:900;line-height:1;text-align:right;transform:rotate(180deg);align-self:flex-end}
+.card-face.front.red .rt,.card-face.front.red .mid{color:#c0392b}
+.card-face.front.black .rt,.card-face.front.black .mid{color:#1a1a2e}
+#center-info{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:5;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;
+}
+#pot-badge{
+  background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+  padding:4px 16px;border-radius:18px;border:1px solid rgba(232,197,71,.15);
+  font-size:13px;font-weight:700;color:var(--gold);white-space:nowrap;
+}
+#phase-lbl{font-size:10.5px;color:var(--mute);letter-spacing:.8px;text-transform:uppercase}
+#act{
+  flex-shrink:0;z-index:30;
+  background:linear-gradient(0deg,rgba(10,30,18,.96),rgba(10,30,18,.78));
+  border-top:1px solid rgba(232,197,71,.08);
+  padding:8px 16px 10px;display:flex;flex-direction:column;gap:5px;align-items:center;
+}
+#hint{font-size:12px;color:var(--mute);text-align:center;min-height:18px}
+#btns{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+.btn{
+  padding:7px 16px;border:none;border-radius:7px;
+  font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;color:#fff;
+  transition:transform .12s;
+}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.35;pointer-events:none}
+.bP{background:linear-gradient(135deg,#2196f3,#1565c0)}
+.bS{background:linear-gradient(135deg,#43a047,#2e7d32)}
+.bD{background:linear-gradient(135deg,#e53935,#b71c1c)}
+.bW{background:linear-gradient(135deg,#fb8c00,#e65100);color:#111}
+.bDark{background:rgba(255,255,255,.09);color:var(--txt);border:1px solid rgba(255,255,255,.08)}
+#toast{
+  position:fixed;bottom:105px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.77);backdrop-filter:blur(6px);
+  color:var(--gold);font-size:12.5px;font-weight:600;
+  padding:6px 20px;border-radius:18px;border:1px solid rgba(232,197,71,.13);
+  pointer-events:none;opacity:0;transition:opacity .3s;z-index:99;white-space:nowrap;
+}
+#toast.show{opacity:1}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.84);backdrop-filter:blur(5px);z-index:299;display:none;align-items:center;justify-content:center}
+#ov.open{display:flex}
+#ov .box{
+  background:linear-gradient(160deg,#122c1a,#0a1e10);border:1px solid rgba(232,197,71,.19);border-radius:14px;
+  padding:26px 34px;text-align:center;max-width:440px;width:90%;box-shadow:0 8px 56px rgba(0,0,0,.81);
+}
+#ov .box h2{font-size:20px;color:var(--gold);margin-bottom:6px}
+#ov .box .det{font-size:12px;color:var(--mute);line-height:1.6;margin-bottom:12px}
+#ov .box .fc{font-size:17px;font-weight:800;margin-bottom:14px}
+@media(max-width:540px){.card-outer{width:62px;height:92px}}
+</style>
+</head>
+<body>
+
+<header id="header">
+  <div class="brand">Pascal666.top <small>险牌对决</small></div>
+  <button class="dl-btn" id="downloadBtn">⬇ 下载游戏文件</button>
+</header>
+
+<div id="game-wrap">
+  <!-- 设置界面 -->
+  <div id="setup-screen">
+    <h1>⚡ 险牌对决</h1>
+    <div class="sub">选择玩家人数和角色，开始游戏</div>
+    <div class="row">
+      <label>玩家数量：</label>
+      <select id="playerCount">
+        <option value="2">2 人</option>
+        <option value="3" selected>3 人</option>
+        <option value="4">4 人</option>
+      </select>
+    </div>
+    <div id="playerConfigs" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <button class="start-btn" id="startGameBtn">🎲 开始游戏</button>
+  </div>
+
+  <!-- 游戏界面 -->
+  <div id="game-screen">
+    <div id="topbar">
+      <div><div class="sub" id="turnInfo">准备中…</div><div class="big" id="rndLbl">第 1 局 · 盲注 50</div></div>
+      <div style="text-align:right"><div class="sub">当前筹码</div><div class="big" id="chipLbl">1000</div></div>
+    </div>
+    <div id="table">
+      <div id="center-info"><div id="pot-badge">💰 底池：0</div><div id="phase-lbl">准备…</div></div>
+    </div>
+    <div id="act"><div id="hint">⏳ 初始化…</div><div id="btns"></div></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="ov">
+  <div class="box">
+    <h2 id="finT">🏆 终局</h2>
+    <div class="det" id="finD"></div>
+    <div class="fc" id="finC"></div>
+    <button class="btn bP" id="restartFromOv">🔄 再来一局</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   险牌对决 · 完整版 (多人热座 + AI)
+   ============================================================ */
+(function(){
+"use strict";
+
+// ─── 常量 ──────────────────────────────────────────────
+const SUITS = [
+  {k:'♠',c:'black'},{k:'♥',c:'red'},{k:'♦',c:'red'},{k:'♣',c:'black'}
+];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const V = r => RANKS.indexOf(r) + 1;
+const START = 1000, BASE_ANTE = 50, SWAP_COST = 100, HAND_SIZE = 4;
+const AI_PERSONALITIES = ['tight','loose','balanced'];
+const POS = [[50,93],[13,73],[13,31],[89,51]]; // 最多4个座位
+
+// ─── DOM 工具 ──────────────────────────────────────────
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function shuffle(a){const b=a.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=b[i];b[i]=b[j];b[j]=t;}return b}
+function newDeck(){let d=[];for(const s of SUITS)for(const r of RANKS)d.push({s:Object.assign({},s),r:r,v:V(r)});return shuffle(d)}
+function toast(msg,t=1800){const e=$('#toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),t)}
+
+// ─── 卡牌工厂 ──────────────────────────────────────────
+function makeCardEl(obj, showFace=false){
+  const outer = document.createElement('div');
+  outer.className = 'card-outer';
+  const inner = document.createElement('div');
+  inner.className = 'card-inner';
+  const back = document.createElement('div');
+  back.className = 'card-face back';
+  back.innerHTML = '<span class="bk">◆ ◆ ◆</span>';
+  const front = document.createElement('div');
+  front.className = 'card-face front ' + (obj.s.c==='red'?'red':'black');
+  front.innerHTML = `<div class="rt">${obj.r}<span class="sm" style="margin-left:1px">${obj.s.k}</span></div><div class="mid">${obj.s.k}</div><div class="rb">${obj.r}<span class="sm" style="margin-left:1px">${obj.s.k}</span></div>`;
+  inner.appendChild(back);
+  inner.appendChild(front);
+  outer.appendChild(inner);
+  if(showFace) inner.classList.add('flipped');
+  outer._obj = obj;
+  outer.flip = () => inner.classList.add('flipped');
+  outer.unflip = () => inner.classList.remove('flipped');
+  return outer;
+}
+
+function renderHand(container, cards, clickCB){
+  container.innerHTML = '';
+  cards.forEach((c,i)=>{
+    const el = makeCardEl(c, false);
+    if(clickCB){
+      el.classList.add('canclick');
+      el.onclick = () => clickCB(i, el);
+    }
+    container.appendChild(el);
+  });
+}
+
+// ─── 游戏状态 ──────────────────────────────────────────
+let G = {
+  players: [],
+  currentPlayer: 0,
+  turn: 0,
+  blind: BASE_ANTE,
+  pot: 0,
+  deck: [],
+  _humanResolve: null, // 用于等待真人操作
+};
+
+// ─── 设置界面 ──────────────────────────────────────────
+function setupPlayers(){
+  const count = parseInt($('#playerCount').value);
+  const div = $('#playerConfigs');
+  div.innerHTML = '';
+  for(let i=0;i<count;i++){
+    const row = document.createElement('div');
+    row.className = 'player-config';
+    row.innerHTML = `
+      <span>玩家 ${i+1}</span>
+      <select class="p-type" data-idx="${i}">
+        <option value="human" ${i===0?'selected':''}>真人</option>
+        <option value="ai" ${i!==0?'selected':''}>AI</option>
+      </select>
+      <input type="text" class="p-name" value="玩家${i+1}" placeholder="昵称" style="width:80px;background:rgba(0,0,0,.3);border:1px solid rgba(232,197,71,.2);color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;">
+    `;
+    div.appendChild(row);
+  }
+}
+$('#playerCount').addEventListener('change', setupPlayers);
+setupPlayers();
+
+$('#startGameBtn').addEventListener('click', ()=>{
+  const count = parseInt($('#playerCount').value);
+  const types = $$('.p-type');
+  const names = $$('.p-name');
+  const players = [];
+  for(let i=0;i<count;i++){
+    const isHuman = types[i].value === 'human';
+    const name = names[i].value.trim() || `玩家${i+1}`;
+    players.push({
+      id: i,
+      name: name,
+      emoji: isHuman ? '🧑' : '🤖',
+      isHuman: isHuman,
+      chips: START,
+      hand: [],
+      idx: -1,
+      action: null,
+      rev: null,
+      aiPersonality: isHuman ? null : AI_PERSONALITIES[i % AI_PERSONALITIES.length],
+    });
+  }
+  initGame(players);
+});
+
+// ─── 初始化游戏 ──────────────────────────────────────
+function initGame(players){
+  G.players = players;
+  G.currentPlayer = 0;
+  G.turn = 0;
+  G.blind = BASE_ANTE;
+  G.pot = 0;
+  G.deck = newDeck();
+  G._humanResolve = null;
+
+  $('#setup-screen').style.display = 'none';
+  $('#game-screen').style.display = 'flex';
+
+  // 重建座位
+  const table = $('#table');
+  const oldSeats = table.querySelectorAll('.seat');
+  oldSeats.forEach(s=>s.remove());
+
+  players.forEach((p,i)=>{
+    const d = document.createElement('div');
+    d.className = 'seat' + (p.isHuman?' you':'');
+    d.id = 'seat-'+i;
+    d.style.left = POS[i][0]+'%';
+    d.style.top = POS[i][1]+'%';
+    d.innerHTML = `<div class="ico">${p.emoji}</div><div class="sname ${p.isHuman?'you':''}">${p.name}</div><div class="schips" id="ch-${i}">${p.chips}</div><div class="hand" id="h-${i}"></div>`;
+    table.appendChild(d);
+  });
+
+  refreshUI();
+  startTurn();
+}
+
+// ─── UI 刷新 ──────────────────────────────────────────
+function refreshUI(){
+  G.players.forEach((p,i)=>{
+    const el = $('#ch-'+i);
+    if(el){
+      el.textContent = p.chips<=0 ? '💀 出局' : p.chips;
+      el.style.color = p.chips<=0 ? 'var(--red)' : '#fff';
+    }
+    const se = $('#seat-'+i);
+    if(se) se.classList.toggle('out', p.chips<=0);
+  });
+  // 显示第一个真人筹码
+  const firstHuman = G.players.find(p=>p.isHuman && p.chips>0);
+  if(firstHuman){
+    $('#chipLbl').textContent = firstHuman.chips;
+  } else {
+    $('#chipLbl').textContent = '💀';
+  }
+  $('#rndLbl').textContent = `第 ${G.turn} 局 · 盲注 ${G.blind}`;
+  $('#pot-badge').innerHTML = `💰 底池：<b>${G.pot}</b>`;
+  const cur = G.players[G.currentPlayer];
+  if(cur){
+    $('#turnInfo').textContent = `当前：${cur.name} (${cur.isHuman?'真人':'AI'})`;
+  }
+}
+function setPhase(t){$('#phase-lbl').textContent=t}
+function setHint(t){$('#hint').textContent=t}
+function clrBtns(){$('#btns').innerHTML=''}
+function btn(txt,cls,cb){const b=document.createElement('button');b.className='btn '+cls;b.textContent=txt;b.onclick=cb;$('#btns').appendChild(b);return b}
+
+// ─── AI 决策 ──────────────────────────────────────────
+function aiDecision(player){
+  const vs = player.hand.map(c=>c.v), best=Math.max(...vs), worst=Math.min(...vs);
+  const canSwap = player.chips >= SWAP_COST + G.blind;
+  const p = player.aiPersonality;
+  switch(p){
+    case 'tight':
+      if(best>=10&&worst>=6) return {type:'hold'};
+      if(canSwap&&worst<=4){const di=vs.indexOf(worst);return{type:'swap',di};}
+      return {type:'hold'};
+    case 'loose':
+      if(canSwap&&(worst<=4||Math.random()<.4)){const di=vs.indexOf(Math.min(...vs));return{type:'swap',di};}
+      if(player.chips<=200&&Math.random()<.3) return{type:'allin'};
+      return{type:'hold'};
+    default: // balanced
+      if(best>=10&&worst>=6) return{type:'hold'};
+      if(canSwap&&worst<=3){const di=vs.indexOf(worst);return{type:'swap',di};}
+      if(player.chips<=150&&Math.random()<.25) return{type:'allin'};
+      return{type:'hold'};
+  }
+}
+
+// ─── 发牌 ──────────────────────────────────────────────
+function deal(n){
+  if(!G.deck||G.deck.length<20) G.deck = newDeck();
+  const r=[];
+  for(let i=0;i<n;i++) r.push(G.deck.pop());
+  return r;
+}
+
+// ─── 回合流程 ──────────────────────────────────────────
+async function startTurn(){
+  const alive = G.players.filter(p=>p.chips>0);
+  if(alive.length <= 1){
+    endGame(); return;
+  }
+  G.turn++;
+  G.pot = 0;
+  G.blind = BASE_ANTE + Math.floor((G.turn-1)/4)*25;
+  G.players.forEach(p=>{p.idx=-1;p.action=null;p.rev=null;p.hand=[];});
+  refreshUI(); clrBtns();
+  setPhase('收取盲注');
+  setHint(`— 第 ${G.turn} 局 · 盲注 ${G.blind} —`);
+  await sleep(600);
+  G.players.forEach(p=>{
+    if(p.chips<=0) return;
+    const pay = Math.min(G.blind, p.chips);
+    p.chips -= pay;
+    G.pot += pay;
+  });
+  refreshUI();
+  toast(`盲注 ${G.blind} 已收，底池 ${G.pot}`,1400);
+  await sleep(1100);
+  // 发牌
+  G.players.forEach(p=>{
+    if(p.chips<=0){$('#h-'+p.id).innerHTML='';return;}
+    p.hand = deal(HAND_SIZE);
+    renderHand($('#h-'+p.id), p.hand, null);
+  });
+  refreshUI();
+  G.currentPlayer = 0;
+  await processNextPlayer();
+}
+
+async function processNextPlayer(){
+  // 跳过已出局
+  while(G.currentPlayer < G.players.length && G.players[G.currentPlayer].chips <= 0){
+    G.currentPlayer++;
+  }
+  if(G.currentPlayer >= G.players.length){
+    await resolveAll();
+    return;
+  }
+  const player = G.players[G.currentPlayer];
+  refreshUI();
+  if(player.isHuman){
+    await humanTurn(player);
+  } else {
+    await aiTurn(player);
+  }
+  G.currentPlayer++;
+  await processNextPlayer();
+}
+
+// ─── 真人玩家操作 ──────────────────────────────────────
+function humanTurn(player){
+  return new Promise(resolve => {
+    G._humanResolve = resolve;
+    const handContainer = $('#h-'+player.id);
+    setPhase(`${player.name} 的回合`);
+    setHint('👇 先选一个行动');
+    clrBtns();
+
+    // 辅助函数：最终提交
+    const commitAction = async (type, duelIdx) => {
+      clrBtns(); setHint('');
+      const els = handContainer.querySelectorAll('.card-outer');
+      els.forEach(o=>{o.onclick=null;o.classList.remove('canclick','sel')});
+      if(type === 'hold'){
+        player.idx = duelIdx;
+        player.action = 'hold';
+        player.rev = player.hand[duelIdx];
+        els[duelIdx].flip();
+        toast(`决战牌：${player.rev.r}${player.rev.s.k}`,1600);
+        await sleep(1500);
+      } else if(type === 'allin'){
+        player.idx = duelIdx;
+        player.action = 'allin';
+        player.rev = player.hand.reduce((a,b)=>a.v>=b.v?a:b);
+        const allAmt = player.chips;
+        G.pot += allAmt;
+        player.chips = 0;
+        els.forEach(o=>o.flip());
+        toast(`💀 全押！亮出最大：${player.rev.r}${player.rev.s.k}`,1900);
+        await sleep(1600);
+      }
+      refreshUI();
+      if(G._humanResolve) G._humanResolve();
+    };
+
+    // 保守
+    btn('🛡 保守出牌','bDark',()=>{
+      setHint('点一张牌作为【决战牌】');
+      clrBtns();
+      const els = handContainer.querySelectorAll('.card-outer');
+      els.forEach((o,i)=>{
+        o.classList.add('canclick');
+        o.onclick=()=>{
+          els.forEach(x=>x.classList.remove('sel'));
+          o.classList.add('sel');
+          clrBtns();
+          setHint(`确定选 ${player.hand[i].r}${player.hand[i].s.k} 为决战牌？`);
+          btn('✅ 确认出这张','bP',()=>commitAction('hold',i));
+          btn('↩ 取消','bDark',()=>{
+            els.forEach(x=>x.classList.remove('sel'));
+            setHint('点一张牌作为【决战牌】');
+            clrBtns();
+            const els2 = handContainer.querySelectorAll('.card-outer');
+            els2.forEach((o2,j)=>{
+              o2.classList.add('canclick');
+              o2.onclick=()=>{
+                els2.forEach(x=>x.classList.remove('sel'));o2.classList.add('sel');
+                clrBtns();
+                setHint(`确定选 ${player.hand[j].r}${player.hand[j].s.k} 为决战牌？`);
+                btn('✅ 确认出这张','bP',()=>commitAction('hold',j));
+                btn('↩ 取消','bDark',()=>{/* 不处理 */});
+              };
+            });
+          });
+        };
+      });
+    });
+
+    // 换牌
+    const canSwap = player.chips >= SWAP_COST;
+    const bs = btn(`🔄 换牌（-${SWAP_COST}入池）`,'bW',async()=>{
+      if(!canSwap) return;
+      setHint('🔄 先点要【丢掉】的牌');
+      clrBtns();
+      const els = handContainer.querySelectorAll('.card-outer');
+      els.forEach((o,i)=>{
+        o.classList.add('canclick');
+        o.onclick=async()=>{
+          player.chips -= SWAP_COST;
+          G.pot += SWAP_COST;
+          const old = player.hand[i];
+          const fresh = deal(1)[0];
+          player.hand[i] = fresh;
+          refreshUI();
+          toast(`换掉 ${old.r}${old.s.k} → ${fresh.r}${fresh.s.k}`,1800);
+          renderHand(handContainer, player.hand, null);
+          await sleep(1400);
+          setHint('✅ 换牌完成 — 点【决战牌】');
+          clrBtns();
+          const els2 = handContainer.querySelectorAll('.card-outer');
+          els2.forEach((o2,j)=>{
+            o2.classList.add('canclick');
+            o2.onclick=()=>{
+              els2.forEach(x=>x.classList.remove('sel'));o2.classList.add('sel');
+              clrBtns();
+              setHint(`确定选 ${player.hand[j].r}${player.hand[j].s.k} 为决战牌？`);
+              btn('✅ 确认出这张','bP',()=>{
+                player.idx=j; player.action='hold'; player.rev=player.hand[j];
+                const el=handContainer.querySelectorAll('.card-outer')[j];
+                if(el) el.flip();
+                toast(`决战牌：${player.rev.r}${player.rev.s.k}`,1600);
+                clrBtns(); setHint('');
+                setTimeout(()=>{
+                  refreshUI();
+                  if(G._humanResolve) G._humanResolve();
+                },1200);
+              });
+              btn('↩ 重选','bDark',()=>{
+                els2.forEach(x=>x.classList.remove('sel'));
+                setHint('✅ 换牌完成 — 点【决战牌】');
+                clrBtns();
+                const els3 = handContainer.querySelectorAll('.card-outer');
+                els3.forEach((o3,k)=>{
+                  o3.classList.add('canclick');
+                  o3.onclick=()=>{
+                    els3.forEach(x=>x.classList.remove('sel'));o3.classList.add('sel');
+                    clrBtns();
+                    setHint(`确定选 ${player.hand[k].r}${player.hand[k].s.k}？`);
+                    btn('✅ 确认','bP',()=>{
+                      player.idx=k; player.action='hold'; player.rev=player.hand[k];
+                      handContainer.querySelectorAll('.card-outer')[k].flip();
+                      toast(`决战牌：${player.rev.r}${player.rev.s.k}`,1600);
+                      setTimeout(()=>{
+                        refreshUI();
+                        if(G._humanResolve) G._humanResolve();
+                      },1200);
+                    });
+                  };
+                });
+              });
+            };
+          });
+        };
+      });
+    });
+    if(!canSwap) bs.disabled = true;
+
+    // 全押
+    btn('💀 全押孤注','bD',()=>{
+      setHint('💀 两张最大者当值 — 确认全押？');
+      clrBtns();
+      btn('✅ 全押！','bD',()=>commitAction('allin',0));
+      btn('↩ 算了','bDark',()=>{/* 不做 */});
+    });
+  });
+}
+
+// ─── AI 自动操作 ──────────────────────────────────────
+async function aiTurn(player){
+  setPhase(`${player.name} 行动中…`);
+  setHint('');
+  clrBtns();
+  await sleep(800);
+  const dec = aiDecision(player);
+  if(dec.type === 'swap'){
+    player.chips -= SWAP_COST;
+    G.pot += SWAP_COST;
+    const old = player.hand[dec.di];
+    player.hand[dec.di] = deal(1)[0];
+    player.rev = player.hand.reduce((a,b)=>a.v>=b.v?a:b);
+    toast(`${player.name} 换牌：${old.r}${old.s.k} → ${player.rev.r}${player.rev.s.k}`,1600);
+  } else if(dec.type === 'hold'){
+    player.rev = player.hand.reduce((a,b)=>a.v>=b.v?a:b);
+    toast(`${player.name} 保守：${player.rev.r}${player.rev.s.k}`,1200);
+  } else { // allin
+    G.pot += player.chips;
+    player.chips = 0;
+    player.rev = player.hand.reduce((a,b)=>a.v>=b.v?a:b);
+    toast(`💀 ${player.name} 全押！${player.rev.r}${player.rev.s.k}`,1800);
+  }
+  // 翻转AI的牌（显示决战牌）
+  const handContainer = $('#h-'+player.id);
+  handContainer.innerHTML = '';
+  const rep = makeCardEl(player.rev, true);
+  rep.style.pointerEvents = 'none';
+  handContainer.appendChild(rep);
+  refreshUI();
+  await sleep(1200);
+}
+
+// ─── 结算 ──────────────────────────────────────────────
+async function resolveAll(){
+  setPhase('结算中…');
+  setHint('');
+  clrBtns();
+  // 找出赢家
+  let bestI = -1, bestScore = [-1,-1];
+  G.players.forEach((p,i)=>{
+    if(!p.rev) return;
+    const sp = SUITS.findIndex(x=>x.k===p.rev.s.k);
+    const sc = [p.rev.v, sp];
+    if(sc[0]>bestScore[0] || (sc[0]===bestScore[0]&&sc[1]>bestScore[1])){
+      bestScore = sc; bestI = i;
+    }
+  });
+  if(bestI>=0 && G.players[bestI].chips>=0){
+    G.players[bestI].chips += G.pot;
+    toast(`🏆 ${G.players[bestI].name} 赢！（${G.players[bestI].rev.r}${G.players[bestI].rev.s.k}）拿到底池 ${G.pot}`,2200);
+  } else {
+    const each = Math.floor(G.pot / G.players.length);
+    G.players.forEach(p=>{if(p.chips>=0)p.chips+=each});
+    toast('⚖️ 结算异常平分',1800);
+  }
+  G.pot = 0;
+  refreshUI();
+  const alive = G.players.filter(p=>p.chips>0);
+  if(alive.length <= 1){
+    await sleep(2000);
+    endGame();
+    return;
+  }
+  await sleep(1800);
+  clrBtns(); setHint('');
+  btn('▶ 下一局','bP',()=>startTurn());
+}
+
+// ─── 结束 ──────────────────────────────────────────────
+function endGame(){
+  const ov = $('#ov');
+  ov.classList.add('open');
+  const t=$('#finT'), d=$('#finD'), c=$('#finC');
+  // 找筹码最多的玩家
+  const sorted = [...G.players].sort((a,b)=>b.chips-a.chips);
+  const winner = sorted[0];
+  if(winner && winner.chips>0){
+    t.textContent = `🏆 ${winner.name} 赢了！`;
+    t.style.color = 'var(--gold)';
+  } else {
+    t.textContent = '💀 所有人都输了…';
+    t.style.color = 'var(--red)';
+  }
+  d.textContent = `共 ${G.turn} 局 · 最高筹码：${winner?winner.chips:0}`;
+  c.textContent = winner ? `${winner.chips}` : '0';
+  c.style.color = '#2ecc71';
+}
+
+// ─── 重启 ──────────────────────────────────────────────
+$('#restartFromOv').addEventListener('click', ()=>{
+  $('#ov').classList.remove('open');
+  $('#game-screen').style.display = 'none';
+  $('#setup-screen').style.display = 'flex';
+  setupPlayers();
+});
+
+// ─── 下载按钮 ──────────────────────────────────────────
+$('#downloadBtn').addEventListener('click', ()=>{
+  const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '险牌对决.html';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ─── 初始提示 ──────────────────────────────────────────
+setHint('准备好后点击“开始游戏”');
+
+})();
+</script>
+</body>
+</html>
